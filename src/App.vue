@@ -357,16 +357,19 @@ export default {
         <div v-if="history.length === 0" style="color: #999; font-size: 13px">
           Belum ada riwayat transaksi.
         </div>
-        <div v-for="h in history" :key="h.id" class="participant-row">
-          <div>
-            <div style="font-size: 13px">{{ h.description }}</div>
+        <div v-for="h in history" :key="h.id" class="history-row">
+          <div class="history-icon" :class="h.type === 'topup' || h.type === 'transfer_in' ? 'icon-in' : 'icon-out'">
+            {{ h.type === "topup" ? "↓" : h.type === "transfer_in" ? "↓" : "↑" }}
+          </div>
+          <div style="flex: 1">
+            <div style="font-size: 13px; font-weight: 600">{{ h.description }}</div>
             <div style="font-size: 11px; color: #999">{{ formatDate(h.created_at) }}</div>
           </div>
           <div
             :style="{
               fontWeight: 700,
               fontSize: '14px',
-              color: h.type === 'topup' || h.type === 'transfer_in' ? '#28a745' : '#d9534f',
+              color: h.type === 'topup' || h.type === 'transfer_in' ? '#16A34A' : '#DC2626',
             }"
           >
             {{ h.type === "topup" || h.type === "transfer_in" ? "+" : "-" }}
@@ -379,13 +382,18 @@ export default {
 </template>
 
 <style>
+:root {
+  --primary: #4f46e5;
+  --primary-dark: #3730a3;
+  --bg: #f4f4fb;
+}
 * {
   box-sizing: border-box;
 }
 body {
-  font-family: -apple-system, Segoe UI, Roboto, sans-serif;
-  background: #f0f2f5;
-  color: #1a1a1a;
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: #1a1a2e;
   margin: 0;
 }
 #app {
@@ -398,97 +406,172 @@ body {
 h1 {
   font-size: 22px;
   margin-bottom: 4px;
+  font-weight: 800;
+  color: #1a1a2e;
 }
 .subtitle {
-  color: #666;
+  color: #8a8a9e;
   font-size: 14px;
   margin-bottom: 20px;
 }
 .card {
   background: white;
-  border-radius: 12px;
-  padding: 18px;
+  border-radius: 20px;
+  padding: 20px;
   margin-bottom: 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.06);
+  border: 1px solid #f0f0f7;
 }
 .card h2 {
   font-size: 15px;
   margin: 0 0 12px;
-  color: #333;
+  color: #1a1a2e;
+  font-weight: 700;
 }
 input {
   width: 100%;
-  padding: 10px 12px;
+  padding: 12px 14px;
   margin: 6px 0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border: 1.5px solid #e5e5f0;
+  border-radius: 12px;
   font-size: 14px;
+  background: #fbfbfe;
+  transition: border-color 0.15s;
+}
+input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: white;
 }
 button {
   width: 100%;
-  background: #0064d2;
+  background: var(--primary);
   color: white;
   border: none;
-  padding: 11px;
-  border-radius: 8px;
+  padding: 13px;
+  border-radius: 999px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   margin-top: 8px;
+  transition: background 0.15s, transform 0.1s;
 }
 button:hover {
-  background: #0050a8;
+  background: var(--primary-dark);
+}
+button:active {
+  transform: scale(0.98);
 }
 button.secondary {
-  background: #6c757d;
+  background: #eeeef7;
+  color: #4a4a5e;
+}
+button.secondary:hover {
+  background: #e2e2f0;
 }
 .profile-box {
-  background: linear-gradient(135deg, #0064d2, #0050a8);
+  position: relative;
+  background: linear-gradient(135deg, #4f46e5 0%, #1e1b6e 100%);
   color: white;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 24px;
+  padding: 24px 20px;
   margin-bottom: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.25);
+}
+.profile-box::before {
+  content: "";
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  top: -60px;
+  right: -60px;
+}
+.profile-box::after {
+  content: "";
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 50%;
+  bottom: -30px;
+  right: 30px;
+}
+.profile-box > div,
+.profile-box .balance {
+  position: relative;
+  z-index: 1;
 }
 .profile-box .balance {
-  font-size: 28px;
-  font-weight: 700;
-  margin-top: 4px;
+  font-size: 30px;
+  font-weight: 800;
+  margin-top: 6px;
+  letter-spacing: 0.3px;
 }
 .participant-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
+  padding: 12px 0;
+  border-bottom: 1px solid #f2f2f8;
+}
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f2f2f8;
+}
+.history-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.icon-in {
+  background: #dcfce7;
+  color: #16a34a;
+}
+.icon-out {
+  background: #fee2e2;
+  color: #dc2626;
 }
 .badge {
-  font-size: 12px;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 700;
 }
 .badge.paid {
-  background: #d4edda;
-  color: #155724;
+  background: #dcfce7;
+  color: #16a34a;
 }
 .badge.unpaid {
-  background: #fff3cd;
-  color: #856404;
+  background: #fef3c7;
+  color: #b45309;
 }
 .error-msg {
-  color: #d9534f;
+  color: #dc2626;
   font-size: 13px;
   margin-top: 6px;
 }
 .success-msg {
-  color: #28a745;
+  color: #16a34a;
   font-size: 13px;
   margin-top: 6px;
 }
 .toggle-link {
   text-align: center;
-  color: #0064d2;
+  color: var(--primary);
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   margin-top: 10px;
 }
