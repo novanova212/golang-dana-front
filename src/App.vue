@@ -10,6 +10,8 @@ export default {
       topupAmount: null,
       transferForm: { toUserId: null, amount: null },
       billForm: { title: "", totalAmount: null, participantIds: "" },
+      isCustomSplit: false,
+      customShares: "", // format: "userId:amount,userId:amount"
       billIdToCheck: null,
       currentBill: null,
       history: [],
@@ -146,19 +148,41 @@ export default {
     async createBill() {
       this.clearMessages();
       try {
-        const ids = this.billForm.participantIds
-          .split(",")
-          .map((s) => parseInt(s.trim()))
-          .filter((n) => !isNaN(n));
+        let data;
 
-        const data = await this.apiCall("/bills", "POST", {
-          creator_id: this.profile.id,
-          title: this.billForm.title,
-          total_amount: this.billForm.totalAmount,
-          participant_ids: ids,
-        });
+        if (this.isCustomSplit) {
+          // Parse format "2:150000,3:100000" jadi array of {user_id, amount}
+          const participants = this.customShares
+            .split(",")
+            .map((pair) => {
+              const [userId, amount] = pair.split(":").map((s) => parseInt(s.trim()));
+              return { user_id: userId, amount: amount };
+            })
+            .filter((p) => !isNaN(p.user_id) && !isNaN(p.amount));
+
+          data = await this.apiCall("/bills/custom", "POST", {
+            creator_id: this.profile.id,
+            title: this.billForm.title,
+            total_amount: this.billForm.totalAmount,
+            participants: participants,
+          });
+        } else {
+          const ids = this.billForm.participantIds
+            .split(",")
+            .map((s) => parseInt(s.trim()))
+            .filter((n) => !isNaN(n));
+
+          data = await this.apiCall("/bills", "POST", {
+            creator_id: this.profile.id,
+            title: this.billForm.title,
+            total_amount: this.billForm.totalAmount,
+            participant_ids: ids,
+          });
+        }
+
         this.successMsg = `Bill "${data.bill.title}" berhasil dibuat (ID: ${data.bill.id})`;
         this.billForm = { title: "", totalAmount: null, participantIds: "" };
+        this.customShares = "";
       } catch (err) {
         this.errorMsg = err.message;
       }
@@ -245,7 +269,23 @@ export default {
         <h2>Buat Split Bill</h2>
         <input v-model="billForm.title" placeholder="Judul (misal: Makan malam)" />
         <input v-model.number="billForm.totalAmount" type="number" placeholder="Total tagihan" />
-        <input v-model="billForm.participantIds" placeholder="Participant User ID (pisah koma: 2,3)" />
+
+        <p class="toggle-link" @click="isCustomSplit = !isCustomSplit" style="text-align: left; margin: 8px 0">
+          {{ isCustomSplit ? "↩ Pakai bagi rata saja" : "⚙ Atur porsi custom per orang" }}
+        </p>
+
+        <input
+          v-if="!isCustomSplit"
+          v-model="billForm.participantIds"
+          placeholder="Participant User ID (pisah koma: 2,3)"
+        />
+        <div v-else>
+          <input v-model="customShares" placeholder="Format: userId:jumlah (misal: 2:150000,3:100000)" />
+          <p style="font-size: 11px; color: #999; margin: 2px 0">
+            Sisa dari total tagihan otomatis jadi porsi kamu sendiri.
+          </p>
+        </div>
+
         <button @click="createBill()">Buat Bill</button>
       </div>
 
