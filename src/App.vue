@@ -225,26 +225,36 @@ export default {
 
 <template>
   <div id="app">
-    <h1>💰 Dana Clone</h1>
-    <p class="subtitle">Aplikasi wallet & split bill sederhana</p>
+    <h1 v-if="token">💰 Dana Clone</h1>
+    <p class="subtitle" v-if="token">Aplikasi wallet & split bill sederhana</p>
 
-    <div v-if="!token">
-      <div class="card">
-        <h2>{{ isRegisterMode ? "Daftar Akun Baru" : "Login" }}</h2>
+    <div v-if="!token" class="auth-wrap">
+      <div class="auth-top">
+        <div class="auth-icon-circle">
+          <span style="font-size: 44px">{{ isRegisterMode ? "👤" : "🔒" }}</span>
+          <span class="dot dot-teal"></span>
+          <span class="dot dot-orange"></span>
+          <span class="dot dot-red"></span>
+        </div>
+      </div>
 
-        <input v-if="isRegisterMode" v-model="form.name" placeholder="Nama" />
-        <input v-model="form.email" placeholder="Email" />
-        <input v-model="form.password" type="password" placeholder="Password" />
+      <div class="auth-sheet">
+        <h2 class="auth-title">{{ isRegisterMode ? "Sign up" : "Sign in" }}</h2>
 
-        <button @click="isRegisterMode ? register() : login()">
-          {{ isRegisterMode ? "Daftar" : "Login" }}
-        </button>
+        <input v-if="isRegisterMode" v-model="form.name" placeholder="Nama" class="pill-input" />
+        <input v-model="form.email" placeholder="Email" class="pill-input" />
+        <input v-model="form.password" type="password" placeholder="Password" class="pill-input" />
 
         <p class="error-msg" v-if="errorMsg">{{ errorMsg }}</p>
         <p class="success-msg" v-if="successMsg">{{ successMsg }}</p>
 
-        <p class="toggle-link" @click="isRegisterMode = !isRegisterMode">
-          {{ isRegisterMode ? "Sudah punya akun? Login" : "Belum punya akun? Daftar" }}
+        <button class="pill-btn-primary" @click="isRegisterMode ? register() : login()">
+          {{ isRegisterMode ? "Sign up" : "Sign in" }}
+        </button>
+
+        <p class="auth-switch">
+          {{ isRegisterMode ? "Have an account?" : "Don't have an account?" }}
+          <span @click="isRegisterMode = !isRegisterMode">{{ isRegisterMode ? "Sign in" : "Sign up" }}</span>
         </p>
       </div>
     </div>
@@ -574,5 +584,101 @@ button.secondary:hover {
   font-weight: 600;
   cursor: pointer;
   margin-top: 10px;
+}
+
+/* === Auth Screen (Sign in / Sign up) — style mobile ala Figma === */
+#app:has(.auth-wrap) {
+  padding: 0;
+  max-width: 420px;
+}
+.auth-wrap {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #4f46e5 0%, #2c1f9e 100%);
+  border-radius: 0;
+  position: relative;
+  overflow: hidden;
+  padding-top: 48px;
+}
+.auth-top {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 90px;
+}
+.auth-icon-circle {
+  width: 130px;
+  height: 130px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+.dot {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+.dot-teal {
+  background: #2dd4bf;
+  top: 10px;
+  left: -6px;
+}
+.dot-orange {
+  background: #fb923c;
+  bottom: 4px;
+  left: 8px;
+}
+.dot-red {
+  background: #f87171;
+  top: 6px;
+  right: -8px;
+}
+.auth-sheet {
+  background: white;
+  border-radius: 32px 32px 0 0;
+  padding: 32px 28px 40px;
+  position: relative;
+  z-index: 1;
+  min-height: 320px;
+}
+.auth-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin: 0 0 20px;
+}
+.pill-input {
+  border-radius: 999px !important;
+  padding: 14px 20px !important;
+  border: 1.5px solid #e5e5f0 !important;
+}
+.pill-btn-primary {
+  border-radius: 999px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 15px;
+  width: 100%;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 12px;
+}
+.pill-btn-primary:hover {
+  background: var(--primary-dark);
+}
+.auth-switch {
+  text-align: center;
+  font-size: 13px;
+  color: #8a8a9e;
+  margin-top: 20px;
+}
+.auth-switch span {
+  color: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
 }
 </style>
