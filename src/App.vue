@@ -25,6 +25,25 @@ export default {
     if (this.token) this.getProfile();
   },
 
+  computed: {
+    // Total semua porsi peserta yang sudah diisi di form custom split.
+    customTotalShares() {
+      return this.customShares.reduce((sum, row) => sum + (row.amount || 0), 0);
+    },
+    // Sisa yang otomatis jadi porsi creator sendiri.
+    remainingForCreator() {
+      return (this.billForm.totalAmount || 0) - this.customTotalShares;
+    },
+    // true kalau total porsi peserta MELEBIHI total tagihan (tidak valid).
+    customSplitExceeded() {
+      return this.customTotalShares > (this.billForm.totalAmount || 0);
+    },
+    // true kalau ada baris yang user ID-nya sama dengan diri sendiri (creator).
+    hasSelfParticipant() {
+      return this.customShares.some((row) => row.userId === this.profile.id);
+    },
+  },
+
   methods: {
     goTo(page) {
       this.clearMessages();
@@ -362,9 +381,20 @@ export default {
                 <input v-model.number="row.amount" type="number" placeholder="Jumlah tagihan" style="flex: 1" />
                 <button @click="removeParticipantRow(index)" style="width: auto; padding: 8px 12px; margin: 6px 0; background: #d9534f">✕</button>
               </div>
+
+              <div class="split-summary" :class="{ 'split-summary-error': customSplitExceeded }">
+                <div>Total porsi peserta: Rp {{ formatMoney(customTotalShares) }}</div>
+                <div v-if="!customSplitExceeded">Sisa untuk kamu (creator): Rp {{ formatMoney(remainingForCreator) }}</div>
+                <div v-else style="font-weight: 700">⚠ Total porsi melebihi total tagihan!</div>
+              </div>
+              <div v-if="hasSelfParticipant" class="split-summary split-summary-error">
+                ⚠ Kamu tidak bisa memasukkan ID milikmu sendiri sebagai peserta
+              </div>
             </div>
 
-            <button @click="createBill()">Buat Bill</button>
+            <button @click="createBill()" :disabled="isCustomSplit && (customSplitExceeded || hasSelfParticipant)">
+              Buat Bill
+            </button>
             <p class="error-msg" v-if="errorMsg">{{ errorMsg }}</p>
             <p class="success-msg" v-if="successMsg">{{ successMsg }}</p>
           </div>
@@ -379,6 +409,26 @@ export default {
               <p style="color: #666; font-size: 13px">
                 Total: Rp {{ formatMoney(currentBill.bill.total_amount) }} — dibuat oleh {{ currentBill.bill.creator.name }}
               </p>
+
+              <div class="progress-bar-track">
+                <div
+                  class="progress-bar-fill"
+                  :style="{ width: Math.min(100, (currentBill.total_paid / currentBill.bill.total_amount) * 100) + '%' }"
+                ></div>
+              </div>
+              <p style="font-size: 12px; color: #999; margin: 4px 0 12px">
+                Terkumpul Rp {{ formatMoney(currentBill.total_paid) }} dari Rp {{ formatMoney(currentBill.bill.total_amount) }}
+              </p>
+
+              <!-- Baris porsi creator sendiri, selalu dianggap lunas -->
+              <div class="participant-row">
+                <div>
+                  <div>{{ currentBill.bill.creator.name }} <span style="color: #999; font-size: 11px">(kamu bayar duluan)</span></div>
+                  <div style="font-size: 12px; color: #888">Rp {{ formatMoney(currentBill.creator_share) }}</div>
+                </div>
+                <span class="badge paid">Lunas</span>
+              </div>
+
               <div v-for="p in currentBill.participants" :key="p.id" class="participant-row">
                 <div>
                   <div>{{ p.user.name }}</div>
@@ -524,6 +574,14 @@ button.secondary { background: #eeeef7; color: #4a4a5e; }
 .error-msg { color: #dc2626; font-size: 13px; margin-top: 6px; }
 .success-msg { color: #16a34a; font-size: 13px; margin-top: 6px; }
 .toggle-link { text-align: center; color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+
+.split-summary { font-size: 12px; color: #4a4a5e; background: #f4f4fb; border-radius: 10px; padding: 8px 12px; margin-top: 8px; }
+.split-summary-error { background: #fee2e2; color: #dc2626; font-weight: 600; }
+
+.progress-bar-track { width: 100%; height: 8px; background: #f0f0f7; border-radius: 999px; overflow: hidden; margin-top: 10px; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #16a34a); border-radius: 999px; transition: width 0.3s; }
+
+button:disabled { background: #d1d1e0 !important; cursor: not-allowed; }
 
 /* ===== Bottom Tab Bar ===== */
 .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: white; display: flex; justify-content: space-around; padding: 10px 0 14px; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); border-radius: 20px 20px 0 0; }
