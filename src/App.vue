@@ -275,6 +275,8 @@ body {
   max-width: 480px;
   margin: 0 auto;
   padding: 20px;
+  display: block;
+  text-align: left;
 }
 h1 {
   font-size: 22px;
