@@ -12,6 +12,7 @@ export default {
       billForm: { title: "", totalAmount: null, participantIds: "" },
       billIdToCheck: null,
       currentBill: null,
+      history: [],
       errorMsg: "",
       successMsg: "",
     };
@@ -26,6 +27,15 @@ export default {
   methods: {
     formatMoney(amount) {
       return new Intl.NumberFormat("id-ID").format(amount || 0);
+    },
+
+    formatDate(dateStr) {
+      return new Date(dateStr).toLocaleString("id-ID", {
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     },
 
     clearMessages() {
@@ -77,15 +87,28 @@ export default {
       this.token = "";
       localStorage.removeItem("token");
       this.profile = { id: null, name: "", balance: 0 };
+      this.history = [];
     },
 
     async getProfile() {
       try {
         const data = await this.apiCall("/me", "GET", null, true);
         this.profile = data.user;
+        await this.getHistory();
       } catch (err) {
         this.errorMsg = err.message;
         this.logout();
+      }
+    },
+
+    async getHistory() {
+      try {
+        const data = await this.apiCall("/wallet/history/" + this.profile.id, "GET");
+        this.history = data.history || [];
+      } catch (err) {
+        // Gagal ambil riwayat tidak perlu bikin seluruh halaman error,
+        // cukup diamkan saja (riwayat kosong).
+        this.history = [];
       }
     },
 
@@ -254,6 +277,29 @@ export default {
                 Bayar
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Riwayat Transaksi</h2>
+        <div v-if="history.length === 0" style="color: #999; font-size: 13px">
+          Belum ada riwayat transaksi.
+        </div>
+        <div v-for="h in history" :key="h.id" class="participant-row">
+          <div>
+            <div style="font-size: 13px">{{ h.description }}</div>
+            <div style="font-size: 11px; color: #999">{{ formatDate(h.created_at) }}</div>
+          </div>
+          <div
+            :style="{
+              fontWeight: 700,
+              fontSize: '14px',
+              color: h.type === 'topup' || h.type === 'transfer_in' ? '#28a745' : '#d9534f',
+            }"
+          >
+            {{ h.type === "topup" || h.type === "transfer_in" ? "+" : "-" }}
+            Rp {{ formatMoney(h.amount) }}
           </div>
         </div>
       </div>
