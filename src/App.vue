@@ -11,7 +11,7 @@ export default {
       transferForm: { toUserId: null, amount: null },
       billForm: { title: "", totalAmount: null, participantIds: "" },
       isCustomSplit: false,
-      customShares: "", // format: "userId:amount,userId:amount"
+      customShares: [{ userId: null, amount: null }],
       billIdToCheck: null,
       currentBill: null,
       history: [],
@@ -145,20 +145,27 @@ export default {
       }
     },
 
+    addParticipantRow() {
+      this.customShares.push({ userId: null, amount: null });
+    },
+
+    removeParticipantRow(index) {
+      this.customShares.splice(index, 1);
+      // Selalu sisakan minimal 1 baris kosong, biar form tidak hilang total.
+      if (this.customShares.length === 0) {
+        this.customShares.push({ userId: null, amount: null });
+      }
+    },
+
     async createBill() {
       this.clearMessages();
       try {
         let data;
 
         if (this.isCustomSplit) {
-          // Parse format "2:150000,3:100000" jadi array of {user_id, amount}
           const participants = this.customShares
-            .split(",")
-            .map((pair) => {
-              const [userId, amount] = pair.split(":").map((s) => parseInt(s.trim()));
-              return { user_id: userId, amount: amount };
-            })
-            .filter((p) => !isNaN(p.user_id) && !isNaN(p.amount));
+            .filter((row) => row.userId !== null && row.amount !== null)
+            .map((row) => ({ user_id: row.userId, amount: row.amount }));
 
           data = await this.apiCall("/bills/custom", "POST", {
             creator_id: this.profile.id,
@@ -182,7 +189,7 @@ export default {
 
         this.successMsg = `Bill "${data.bill.title}" berhasil dibuat (ID: ${data.bill.id})`;
         this.billForm = { title: "", totalAmount: null, participantIds: "" };
-        this.customShares = "";
+        this.customShares = [{ userId: null, amount: null }];
       } catch (err) {
         this.errorMsg = err.message;
       }
@@ -270,18 +277,42 @@ export default {
         <input v-model="billForm.title" placeholder="Judul (misal: Makan malam)" />
         <input v-model.number="billForm.totalAmount" type="number" placeholder="Total tagihan" />
 
-        <p class="toggle-link" @click="isCustomSplit = !isCustomSplit" style="text-align: left; margin: 8px 0">
-          {{ isCustomSplit ? "↩ Pakai bagi rata saja" : "⚙ Atur porsi custom per orang" }}
-        </p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0">
+          <span class="toggle-link" @click="isCustomSplit = !isCustomSplit" style="margin: 0">
+            {{ isCustomSplit ? "↩ Pakai bagi rata saja" : "⚙ Atur porsi custom per orang" }}
+          </span>
+          <button
+            v-if="isCustomSplit"
+            @click="addParticipantRow()"
+            style="width: auto; padding: 6px 12px; font-size: 12px; margin: 0"
+          >
+            + Tambah User
+          </button>
+        </div>
 
         <input
           v-if="!isCustomSplit"
           v-model="billForm.participantIds"
           placeholder="Participant User ID (pisah koma: 2,3)"
         />
+
         <div v-else>
-          <input v-model="customShares" placeholder="Format: userId:jumlah (misal: 2:150000,3:100000)" />
-          <p style="font-size: 11px; color: #999; margin: 2px 0">
+          <div
+            v-for="(row, index) in customShares"
+            :key="index"
+            style="display: flex; gap: 6px; align-items: center"
+          >
+            <input v-model.number="row.userId" type="number" placeholder="ID" style="flex: 0 0 60px" />
+            <input v-model.number="row.amount" type="number" placeholder="Jumlah tagihan user ini" style="flex: 1" />
+            <button
+              @click="removeParticipantRow(index)"
+              style="width: auto; padding: 8px 12px; margin: 6px 0; background: #d9534f"
+              title="Hapus baris ini"
+            >
+              ✕
+            </button>
+          </div>
+          <p style="font-size: 11px; color: #999; margin: 4px 0 0">
             Sisa dari total tagihan otomatis jadi porsi kamu sendiri.
           </p>
         </div>
