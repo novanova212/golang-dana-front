@@ -598,11 +598,14 @@ button.secondary:hover {
   position: relative;
   overflow: hidden;
   padding-top: 48px;
+  display: flex;
+  flex-direction: column;
 }
 .auth-top {
   display: flex;
   justify-content: center;
-  padding-bottom: 90px;
+  padding-bottom: 60px;
+  flex-shrink: 0;
 }
 .auth-icon-circle {
   width: 130px;
@@ -642,7 +645,9 @@ button.secondary:hover {
   padding: 32px 28px 40px;
   position: relative;
   z-index: 1;
-  min-height: 320px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 .auth-title {
   font-size: 22px;
