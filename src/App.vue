@@ -662,8 +662,26 @@ body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: v
 .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(79,70,229,0.06); border: 1px solid #f0f0f7; }
 .card h2 { font-size: 15px; margin: 0 0 12px; color: #1a1a2e; font-weight: 700; }
 
-input, .filter-select { width: 100%; padding: 12px 14px; margin: 6px 0; border: 1.5px solid #e5e5f0; border-radius: 12px; font-size: 14px; background: #fbfbfe; }
-input:focus, .filter-select:focus { outline: none; border-color: var(--primary); background: white; }
+input { width: 100%; padding: 12px 14px; margin: 6px 0; border: 1.5px solid #e5e5f0; border-radius: 12px; font-size: 14px; background: #fbfbfe; }
+input:focus { outline: none; border-color: var(--primary); background: white; }
+
+.filter-select {
+  width: 100%;
+  padding: 12px 40px 12px 14px;
+  margin: 6px 0;
+  border: 1.5px solid #e5e5f0;
+  border-radius: 999px;
+  font-size: 14px;
+  background-color: #fbfbfe;
+  color: #1a1a2e;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+}
+.filter-select:focus { outline: none; border-color: var(--primary); background-color: white; }
 button { width: 100%; background: var(--primary); color: white; border: none; padding: 13px; border-radius: 999px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 8px; }
 button:hover { background: var(--primary-dark); }
 button:disabled { background: #d1d1e0 !important; cursor: not-allowed; }
