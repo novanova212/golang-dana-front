@@ -712,6 +712,6 @@ button.secondary { background: #eeeef7; color: #4a4a5e; }
 
 .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: white; display: flex; justify-content: space-around; padding: 10px 0 14px; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); border-radius: 20px 20px 0 0; }
 .tab-item { text-align: center; cursor: pointer; color: #b0b0c0; font-size: 20px; }
-.tab-item.active { color: var(--primary); }
-.tab-label { font-size: 10px; font-weight: 700; margin-top: 2px; }
+.tab-item. { font-size: 10pactive { color: var(--primary); }
+.tab-labelx; font-weight: 700; margin-top: 2px; }
 </style>
